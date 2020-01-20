@@ -434,22 +434,27 @@ public class SecurityHeaderProcessor implements ISecurityHeaderProcessor {
                 }
                 // As WSS4J does not report the key transport detail, we need to collect them directly from the
                 // EncryptedKey element
-                final Element encryptionMethod = (Element) wss4jDocInfo.getTokenElement(
-                                                                 (String) decResult.get(WSSecurityEngineResult.TAG_ID))
-                                                                       .getFirstChild();
-                for(int i = 0; i < encryptionMethod.getChildNodes().getLength() ; i++) {
+   		        Element encryptionMethod = null;
+                final Element securityHeader = wss4jDocInfo.getSecurityHeader();
+                for (int i = 0; i < securityHeader.getChildNodes().getLength(); i++) {
+                    Node child = securityHeader.getChildNodes().item(i);
+                    if (child.getLocalName().equals("EncryptedKey")) {
+                        encryptionMethod = (Element) child;
+                    }
+                }
+                for (int i = 0; i < encryptionMethod.getChildNodes().getLength(); i++) {
                     Node child = encryptionMethod.getChildNodes().item(i);
                     switch (child.getLocalName()) {
-                        case "DigestMethod" :
-                            ktDigest = ((Element) child).getAttribute("Algorithm");
-                            break;
-                        case "MGF" :
-                            ktMGF = ((Element) child).getAttribute("Algorithm");
+                    case "DigestMethod":
+                        ktDigest = ((Element) child).getAttribute("Algorithm");
+                        break;
+                    case "MGF":
+                        ktMGF = ((Element) child).getAttribute("Algorithm");
                     }
                 }
                 // And create result object
                 results.add(new EncryptionProcessingResult(encCert, refMethod, ktAlgorithm, ktMGF, ktDigest,
-                                                           encAlgorithm, payloads));
+                        encAlgorithm, payloads));
             }
         }
         return results;
